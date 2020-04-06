@@ -18,6 +18,8 @@ module.exports = {
         'spaced-comment': 0,
         'semi': 0,
         'padded-blocks': 0,
-        'indent': 0
+        'indent': 0,
+        'eol-last': 0,
+        'vue/no-use-v-if-with-v-for': 0
     }
 }
