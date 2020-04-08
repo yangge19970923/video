@@ -50,16 +50,23 @@ export default {
     //第二种ajax自带的abort()，百度搜索axios的终止多次请求
     message: async function(newVal) {
       var that = this
-
+      var cityId = this.$store.state.city.id
       // 取消上一次请求
       this.cancelRequest()
 
-      const { data: msg } = await this.axios
-        .get(`/api/searchList?cityId=10&kw=${newVal}`, {
+      this.axios
+        .get(`/api/searchList?cityId=${cityId}&kw=${newVal}`, {
           //配置取消的方法
           cancelToken: new this.axios.CancelToken(function(c) {
             that.source = c
           })
+        })
+        .then(res => {
+          var msg = res.data.msg
+          var movies = res.data.data.movies
+          if (movies && msg) {
+            this.moviesList = res.data.data.movies.list
+          }
         })
         .catch(err => {
           if (this.axios.isCancel(err)) {
@@ -69,11 +76,6 @@ export default {
             console.log(err)
           }
         })
-      // console.log(msg)
-      if (msg.msg && msg.data.movies) {
-        this.moviesList = msg.data.movies.list
-        console.log(this.moviesList)
-      }
     }
   }
 }

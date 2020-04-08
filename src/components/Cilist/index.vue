@@ -1,62 +1,65 @@
 <template>
   <div class="cinema_body">
-    <ul>
-      <li v-for="item in cinemaList" :key="item.id">
-        <div>
-          <span>{{item.nm}}</span>
-          <span class="q">
-            <span class="price">{{item.sellPrice}}</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>{{item.addr}}</span>
-          <span>{{item.distance}}</span>
-        </div>
-        <div class="card">
-          <div
-            v-for="(num,key) in item.tag"
-            v-if="num === 1"
-            :key="key"
-            :class="key | formatClass"
-          >{{key | formatCard}}</div>
-        </div>
-      </li>
-    </ul>
+    <Loading v-if="isLoading" />
+    <Scroller v-else>
+      <ul>
+        <li v-for="item in cinemaList" :key="item.id">
+          <div>
+            <span>{{ item.nm }}</span>
+            <span class="q">
+              <span class="price">{{ item.sellPrice }}</span> 元起
+            </span>
+          </div>
+          <div class="address">
+            <span>{{ item.addr }}</span>
+            <span>{{ item.distance }}</span>
+          </div>
+          <div class="card">
+            <div
+              v-for="(num,key) in item.tag"
+              v-if="num===1"
+              :key="key"
+              :class=" key | formatClass "
+            >{{ key | formatCard }}</div>
+          </div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
-</template>>
+</template>
 <script>
 export default {
   name: 'Cilist',
   data() {
     return {
-      cinemaList: []
+      cinemaList: [],
+      isLoading: true,
+      prevCityId: -1
     }
   },
-  created: function() {
-    this.getClistData()
+  activated: function() {
+    var cityId = this.$store.state.city.id
+    if (this.prevCityId === cityId) {
+      return
+    }
+    this.isLoading = true
+    this.getClistData(cityId)
   },
   methods: {
-    getClistData: async function() {
-      const { data: msg } = await this.axios.get('/api/cinemaList?city=10')
+    getClistData: async function(cityId) {
+      const { data: msg } = await this.axios.get(
+        '/api/cinemaList?city=' + cityId
+      )
+      console.log('/api/cinemaList?city=' + cityId)
+
+      console.log(msg.data.cinemas[0])
+
       this.cinemaList = msg.data.cinemas
-      console.log(this.cinemaList)
+      this.isLoading = false
+      this.prevCityId = cityId
     }
   },
   filters: {
-    // formatCard(key) {
-    // var card = [
-    //   { key: 'allowRefund', value: '改签' },
-    //   { key: 'endorse', value: '退' },
-    //   { key: 'sell', value: '折扣卡' },
-    //   { key: 'snack', value: '小吃' }
-    // ]
-    //   for (var i = 0; i < card.length; i++) {
-    //     if (card[i].key === key) {
-    //       return card[i].value
-    //     }
-    //     return ''
-    //   }
-    // }
     formatCard(key) {
       var card = [
         { key: 'allowRefund', value: '改签' },
@@ -146,5 +149,8 @@ export default {
 .cinema_body .card div.bl {
   color: #589daf;
   border: 1px solid #589daf;
+}
+.wrapper[data-v-3c6eb66d] {
+  height: 520px;
 }
 </style>
