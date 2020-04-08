@@ -1,24 +1,27 @@
 <template>
   <div class="movie_body">
-    <ul>
-      <li v-for="item in comingList" :key="item.id">
-        <div class="pic_show">
-          <img :src="item.img | setWH('128.180')" />
-        </div>
-        <div class="info_list">
-          <h2>
-            {{item.nm}}
-            <img v-if="item.version" src="@/assets/maxs.png" alt />
-          </h2>
-          <p>
-            <span class="person">{{item.wish}}</span> 人想看
-          </p>
-          <p>主演: {{item.star}}</p>
-          <p>{{item.rt}}上映</p>
-        </div>
-        <div class="btn_pre">预售</div>
-      </li>
-    </ul>
+    <Loading v-if="isLoading" />
+    <Scroller v-else :handleToScroll="handleToScroll" :handleToTouchEnd="handleToTouchEnd">
+      <ul>
+        <li v-for="item in comingList" :key="item.id">
+          <div class="pic_show">
+            <img :src="item.img | setWH('128.180')" />
+          </div>
+          <div class="info_list">
+            <h2>
+              {{item.nm}}
+              <img v-if="item.version" src="@/assets/maxs.png" alt />
+            </h2>
+            <p>
+              <span class="person">{{item.wish}}</span> 人想看
+            </p>
+            <p>主演: {{item.star}}</p>
+            <p>{{item.rt}}上映</p>
+          </div>
+          <div class="btn_pre">预售</div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
 </template>
 
@@ -27,20 +30,47 @@ export default {
   name: 'ComingSoon',
   data() {
     return {
-      comingList: []
+      comingList: [],
+      isLoading: true,
+      prevCityId: -1
     }
   },
-  mounted: function() {
-    this.getComingSoonData()
+  activated: function() {
+    var cityId = this.$store.state.city.id
+    if (this.prevCityId === cityId) {
+      return
+    }
+    this.isLoading = true
+    this.getComingSoonData(cityId)
   },
   methods: {
-    getComingSoonData: async function() {
+    getComingSoonData: async function(cityId) {
       const { data: msg } = await this.axios.get(
-        '/api/movieComingList?cityId=10'
+        '/api/movieComingList?cityId=' + cityId
       )
-      console.log(msg)
       if (msg.msg === 'ok') {
         this.comingList = msg.data.comingList
+        this.isLoading = false
+        this.prevCityId = cityId
+      }
+    },
+    handleToScroll: function(pos) {
+      if (pos.y > 30) {
+        this.pullDownMsg = '正在更新中'
+      }
+    },
+    handleToTouchEnd: async function(pos) {
+      if (pos.y > 30) {
+        var { data: res } = await this.axios.get(
+          '/api/movieOnInfoList?cityId=11'
+        )
+        if (res.msg === 'ok') {
+          this.pullDownMsg = '更新成功'
+          setTimeout(() => {
+            this.movieList = res.data.movieList
+            this.pullDownMsg = ''
+          }, 1000)
+        }
       }
     }
   }

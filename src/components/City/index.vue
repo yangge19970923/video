@@ -1,20 +1,29 @@
 <template>
   <div class="city_body">
     <div class="city_list">
-      <div class="city_hot">
-        <h2>热门城市</h2>
-        <ul class="clearfix">
-          <li v-for="item in hotList" :key="item.id">{{item.nm}}</li>
-        </ul>
-      </div>
-      <div class="city_sort" ref="city_sort">
-        <div v-for="item in cityList" :key="item.index">
-          <h2>{{item.index}}</h2>
-          <ul>
-            <li v-for="i in item.list" :key="i.id">{{i.nm}}</li>
-          </ul>
+      <Loading v-if="isLoading" />
+      <Scroller v-else ref="city_list">
+        <div>
+          <div class="city_hot">
+            <h2>热门城市</h2>
+            <ul class="clearfix">
+              <li
+                v-for="item in hotList"
+                :key="item.id"
+                @tap="handleToCity(item.nm,item.id)"
+              >{{item.nm}}</li>
+            </ul>
+          </div>
+          <div class="city_sort" ref="city_sort">
+            <div v-for="item in cityList" :key="item.index">
+              <h2>{{item.index}}</h2>
+              <ul>
+                <li v-for="i in item.list" :key="i.id" @tap="handleToCity(i.nm,i.id)">{{i.nm}}</li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      </Scroller>
     </div>
     <div class="city_index">
       <ul>
@@ -33,7 +42,8 @@ export default {
   data() {
     return {
       cityList: [],
-      hotList: []
+      hotList: [],
+      isLoading: true
     }
   },
   name: 'City',
@@ -43,14 +53,25 @@ export default {
   methods: {
     //获取城市数据
     getCities: async function() {
-      const { data: res } = await this.axios.get('/api/cityList')
-      // console.log(res)
-      if (res.msg === 'ok') {
-        var cities = res.data.cities
-        //改造之后的数据格式,[{index: 'A' , list:[{nm:'北京',id:123}]}]
-        var { cityList, hotList } = this.formatCityList(cities)
+      var cityList = JSON.parse(window.localStorage.getItem('cityList'))
+      var hotList = JSON.parse(window.localStorage.getItem('hotList'))
+      if (cityList && hotList) {
         this.cityList = cityList
         this.hotList = hotList
+        this.isLoading = false
+      } else {
+        const { data: res } = await this.axios.get('/api/cityList')
+        // console.log(res)
+        if (res.msg === 'ok') {
+          var cities = res.data.cities
+          //改造之后的数据格式,[{index: 'A' , list:[{nm:'北京',id:123}]}]
+          var { cityList, hotList } = this.formatCityList(cities)
+          this.cityList = cityList
+          this.hotList = hotList
+          this.isLoading = false
+          window.localStorage.setItem('cityList', JSON.stringify(cityList))
+          window.localStorage.setItem('hotList', JSON.stringify(hotList))
+        }
       }
     },
     //格式化城市数据并保存到本地
@@ -104,7 +125,15 @@ export default {
     handleToIndex: function(index) {
       // console.log(index)
       var h2 = this.$refs.city_sort.querySelectorAll('h2')
-      this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop
+      // this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop
+      this.$refs.city_list.toScrollTop(-h2[index].offsetTop)
+    },
+    //传选择的城市名字和id给vuex
+    handleToCity(nm, id) {
+      this.$store.commit('city/CITY_INFO', { nm, id })
+      window.localStorage.setItem('nowNm', nm)
+      window.localStorage.setItem('nowId', id)
+      this.$router.push('/movie/nowPlaying')
     }
   }
 }

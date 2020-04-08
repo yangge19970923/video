@@ -20,6 +20,10 @@ module.exports = {
         'padded-blocks': 0,
         'indent': 0,
         'eol-last': 0,
-        'vue/no-use-v-if-with-v-for': 0
+        'vue/no-use-v-if-with-v-for': 0,
+        'no-new': 0,
+        'import/first': 0,
+        'no-redeclare': 0,
+        'no-extra-parens': 0
     }
 }
