@@ -15,8 +15,8 @@ Vue.component('Loading', Loading)
 
 //替换图片中的wh
 Vue.filter('setWH', (url, arg) => {
-  return url.replace(/w\.h/, arg)
-})
+  return url.replace(/w\.h/, arg);
+});
 
 Vue.config.productionTip = false
 

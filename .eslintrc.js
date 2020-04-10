@@ -24,6 +24,7 @@ module.exports = {
         'no-new': 0,
         'import/first': 0,
         'no-redeclare': 0,
-        'no-extra-parens': 0
+        'no-extra-parens': 0,
+        'no-undef': 0
     }
 }
